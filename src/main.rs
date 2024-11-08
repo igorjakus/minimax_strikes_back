@@ -29,20 +29,27 @@ fn minmax(board: &Board, depth: i32, maximize: bool) -> i32 {
         return evaluation(board)
     }
     
+    let mut eval = if maximize { i32::MIN } else { i32::MAX };
+
     if maximize {
-        let mut eval = i32::MIN;
-        eval = eval.max(minmax(board, depth - 1, false));
-        return eval
+        for m in MoveGen::new_legal(&board) {
+            let neighbour = board.make_move_new(m);
+            eval = eval.max(minmax(&neighbour, depth - 1, false));
+        }
+
     } else {
-        let mut eval = i32::MAX;
-        eval = eval.min(minmax(board, depth - 1, false));
-        return eval
+        for m in MoveGen::new_legal(&board) {
+            let neighbour = board.make_move_new(m);
+            eval = eval.min(minmax(&neighbour, depth - 1, true));
+        }
     }
+
+    eval
 }
 
 fn main() {
     let board = Board::default();
     let movegen = MoveGen::new_legal(&board);
     assert_eq!(movegen.len(), 20);
-    println!("{}", minmax(&board, 0, true))
+    println!("{}", minmax(&board, 4, true))
 }
