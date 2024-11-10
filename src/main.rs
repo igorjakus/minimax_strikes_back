@@ -1,3 +1,4 @@
+use std::time::Instant;
 use chess::{Board, BoardStatus, Color, MoveGen, Piece};
 
 const PIECE_VALUES: [(Piece, i32); 6] = [
@@ -24,23 +25,36 @@ fn evaluation(board: &Board) -> i32 {
 }
 
 
-fn minmax(board: &Board, depth: i32, maximize: bool) -> i32 {
+fn minmax(board: &Board, depth: i32, alpha: i32, beta: i32, maximize: bool) -> i32 {
     if depth == 0 || board.status() != BoardStatus::Ongoing {
         return evaluation(board)
     }
     
+    let mut alpha = alpha;
+    let mut beta = beta;
+
     let mut eval = if maximize { i32::MIN } else { i32::MAX };
 
     if maximize {
         for m in MoveGen::new_legal(&board) {
             let neighbour = board.make_move_new(m);
-            eval = eval.max(minmax(&neighbour, depth - 1, false));
+            eval = eval.max(minmax(&neighbour, depth - 1, alpha, beta, false));
+            alpha = alpha.max(eval);
+
+            if beta <= alpha {
+                break;
+            }
         }
 
     } else {
         for m in MoveGen::new_legal(&board) {
             let neighbour = board.make_move_new(m);
-            eval = eval.min(minmax(&neighbour, depth - 1, true));
+            eval = eval.min(minmax(&neighbour, depth - 1, alpha, beta, true));
+            beta = beta.min(eval);
+            
+            if beta <= alpha {
+                break;
+            }
         }
     }
 
@@ -49,7 +63,12 @@ fn minmax(board: &Board, depth: i32, maximize: bool) -> i32 {
 
 fn main() {
     let board = Board::default();
-    let movegen = MoveGen::new_legal(&board);
-    assert_eq!(movegen.len(), 20);
-    println!("{}", minmax(&board, 4, true))
+
+    let start = Instant::now();
+    
+    let eval = minmax(&board, 8, i32::MIN, i32::MAX, true);
+    println!("Minmax result: {}", eval);
+    
+    let duration = start.elapsed();
+    println!("Time taken: {:?}", duration);
 }
