@@ -27,38 +27,31 @@ fn evaluation(board: &Board) -> i32 {
 
 fn minmax(board: &Board, depth: i32, alpha: i32, beta: i32, maximize: bool) -> i32 {
     if depth == 0 || board.status() != BoardStatus::Ongoing {
-        return evaluation(board)
+        return evaluation(board);
     }
     
     let mut alpha = alpha;
     let mut beta = beta;
+    let mut best_eval = if maximize { i32::MIN } else { i32::MAX };
 
-    let mut eval = if maximize { i32::MIN } else { i32::MAX };
-
-    if maximize {
-        for m in MoveGen::new_legal(&board) {
-            let neighbour = board.make_move_new(m);
-            eval = eval.max(minmax(&neighbour, depth - 1, alpha, beta, false));
-            alpha = alpha.max(eval);
-
-            if beta <= alpha {
-                break;
-            }
+    for chess_move in MoveGen::new_legal(board) {
+        let next_position = board.make_move_new(chess_move);
+        let eval = minmax(&next_position, depth - 1, alpha, beta, !maximize);
+        
+        if maximize {
+            best_eval = best_eval.max(eval);
+            alpha = alpha.max(best_eval);
+        } else {
+            best_eval = best_eval.min(eval);
+            beta = beta.min(best_eval);
         }
 
-    } else {
-        for m in MoveGen::new_legal(&board) {
-            let neighbour = board.make_move_new(m);
-            eval = eval.min(minmax(&neighbour, depth - 1, alpha, beta, true));
-            beta = beta.min(eval);
-            
-            if beta <= alpha {
-                break;
-            }
+        if beta <= alpha {
+            break;
         }
     }
 
-    eval
+    best_eval
 }
 
 fn main() {
