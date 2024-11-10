@@ -1,18 +1,18 @@
 use chess::{Board, BoardStatus, Color, MoveGen, Piece};
 
+const PIECE_VALUES: [(Piece, i32); 6] = [
+    (Piece::Pawn, 1),
+    (Piece::Knight, 3),
+    (Piece::Bishop, 3),
+    (Piece::Rook, 5),
+    (Piece::Queen, 9),
+    (Piece::King, 1000),
+];
+
 fn evaluation(board: &Board) -> i32 {
     let mut score = 0;
 
-    let piece_values = [
-        (Piece::Pawn, 1),
-        (Piece::Knight, 3),
-        (Piece::Bishop, 3),
-        (Piece::Rook, 5),
-        (Piece::Queen, 9),
-        (Piece::King, 1000),
-    ];
-
-    for (piece, value) in piece_values.iter() {
+    for (piece, value) in PIECE_VALUES.iter() {
         let white_pieces = board.pieces(*piece) & board.color_combined(Color::White);
         score += white_pieces.popcnt() as i32 * value;
         
